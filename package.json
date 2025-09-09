@@ -1,19 +1,24 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-tolgee",
   "version": "0.1.0",
-  "description": "",
+  "description": "Tolgee translation management node for n8n",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "tolgee",
+    "translation",
+    "i18n",
+    "internationalization",
+    "localization"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/tolgee/n8n-node-tolgee",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Tolgee",
+    "email": "info@tolgee.io"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/tolgee/n8n-node-tolgee.git"
   },
   "engines": {
     "node": ">=20.15"
@@ -33,12 +38,11 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/TolgeeApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/Tolgee/Tolgee.node.js",
+      "dist/nodes/Tolgee/TolgeeTrigger.node.js"
     ]
   },
   "devDependencies": {

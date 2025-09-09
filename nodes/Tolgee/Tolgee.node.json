@@ -1,0 +1,24 @@
+{
+	"node": "n8n-nodes-tolgee",
+	"nodeVersion": "0.1",
+	"codexVersion": "1.0",
+	"categories": [
+		"Development",
+		"Developer Tools",
+		"Internationalization",
+		"i18n",
+		"l10n"
+	],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.tolgee.io/api"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.tolgee.io/api"
+			}
+		]
+	}
+}
