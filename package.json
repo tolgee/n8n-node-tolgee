@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-tolgee",
+  "name": "@eweren/n8n-nodes-tolgee",
   "version": "0.1.0",
   "description": "Tolgee translation management node for n8n",
   "keywords": [
