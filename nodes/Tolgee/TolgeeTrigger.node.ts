@@ -1,16 +1,14 @@
 import {
-  ITriggerFunctions,
+  IPollFunctions,
   INodeType,
   INodeTypeDescription,
-  ITriggerResponse,
   NodeConnectionType,
   INodeExecutionData,
   NodeApiError,
+  IDataObject,
+  JsonObject,
 } from 'n8n-workflow';
 
-// Node.js global functions
-declare const setInterval: (callback: () => void, ms: number) => any;
-declare const clearInterval: (id: any) => void;
 
 export class TolgeeTrigger implements INodeType {
   description: INodeTypeDescription = {
@@ -24,6 +22,7 @@ export class TolgeeTrigger implements INodeType {
     defaults: {
       name: 'Tolgee Trigger',
     },
+    polling: true,
     inputs: [],
     outputs: [NodeConnectionType.Main],
     credentials: [
@@ -354,13 +353,6 @@ export class TolgeeTrigger implements INodeType {
           },
         ],
       },
-      {
-        displayName: 'Poll Interval (Seconds)',
-        name: 'pollInterval',
-        type: 'number',
-        default: 30,
-        description: 'How often to poll for new activities (in seconds)',
-      },
     ],
   };
 
@@ -371,7 +363,7 @@ export class TolgeeTrigger implements INodeType {
         const baseURL = credentials?.domain as string;
 
         try {
-          const response = await this.helpers.request({
+          const response = await this.helpers.httpRequest({
             method: 'GET',
             url: `${baseURL}/v2/api-keys/current`,
             headers: {
@@ -380,7 +372,7 @@ export class TolgeeTrigger implements INodeType {
             },
           });
 
-          const parsedResponse = JSON.parse(response);
+          const parsedResponse = response;
 
           return [{
             name: `${parsedResponse.projectName} (${parsedResponse.projectId})`,
@@ -399,7 +391,7 @@ export class TolgeeTrigger implements INodeType {
         try {
 
           // Test basic API key validity
-          const response = await this.helpers.request({
+          const response = await this.helpers.httpRequest({
             method: 'GET',
             url: `${baseURL}/v2/api-keys/current`,
             headers: {
@@ -408,7 +400,7 @@ export class TolgeeTrigger implements INodeType {
             },
           });
 
-          const apiKeyInfo = JSON.parse(response);
+          const apiKeyInfo = response;
 
           // Define required scopes for our nodes
           const requiredScopes = [
@@ -446,86 +438,64 @@ export class TolgeeTrigger implements INodeType {
     }
   };
 
-  async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
+  async poll(this: IPollFunctions): Promise<INodeExecutionData[][] | null> {
+    const webhookData = this.getWorkflowStaticData('node');
     const projectId = this.getNodeParameter('projectId') as string;
     const eventTypes = this.getNodeParameter('eventTypes') as string[];
-    const pollInterval = (this.getNodeParameter('pollInterval') as number) * 1000; // Convert to milliseconds
 
-    // Get the last timestamp from the workflow data
-    const workflowData = this.getWorkflowStaticData('global');
-    let lastTimestamp = workflowData.lastTimestamp as number || 0;
+    const qs: IDataObject = {};
+    let activities = [];
 
-    const executeTrigger = async () => {
-      try {
-        const credentials = await this.getCredentials('tolgeeApi');
-        const baseURL = credentials?.domain as string;
+    // Use timestamp-based filtering
+    qs.size = 10;
+    qs.sort = 'timestamp,desc';
 
-        // Fetch activities from Tolgee API
-        const response = await this.helpers.request({
-          method: 'GET',
-          url: `${baseURL}/v2/projects/${projectId}/activity`,
-          headers: {
-            'X-API-Key': credentials?.token,
-            'Accept': 'application/json',
-          },
-          qs: {
-            size: 10,
-            sort: 'timestamp,desc',
-          },
-        });
+    // If we have a last timestamp, we could potentially use it for filtering
+    // but for now, let's get recent activities and filter them
+    const lastTimestamp = webhookData.lastTimestamp as number || 0;
 
-        const parsedResponse = JSON.parse(response);
-        const activities = parsedResponse._embedded?.activities || [];
+    try {
+      const credentials = await this.getCredentials('tolgeeApi');
+      const baseURL = credentials?.domain as string;
 
-        // Filter activities that occurred after the last timestamp
-        const newActivities = activities.filter((activity: any) => {
-          return activity.timestamp > lastTimestamp;
-        });
+      // Fetch activities from Tolgee API
+      const response = await this.helpers.httpRequest({
+        method: 'GET',
+        url: `${baseURL}/v2/projects/${projectId}/activity`,
+        headers: {
+          'X-API-Key': credentials?.token,
+          'Accept': 'application/json',
+        },
+        qs,
+      });
 
-        // Filter activities by event types if specified
-        const filteredActivities = eventTypes.length > 0
-          ? newActivities.filter((activity: any) => eventTypes.includes(activity.type))
-          : newActivities;
+      const parsedResponse = response;
+      activities = parsedResponse._embedded?.activities || [];
 
-        // Update the last timestamp to the most recent activity
-        if (newActivities.length > 0) {
-          lastTimestamp = Math.max(...newActivities.map((activity: any) => activity.timestamp));
-          workflowData.lastTimestamp = lastTimestamp;
-        }
+      // Filter activities that occurred after the last timestamp
+      const newActivities = activities.filter((activity: any) => {
+        return activity.timestamp > lastTimestamp;
+      });
 
-        // Trigger for each matching activity
-        for (const activity of filteredActivities) {
-          const executionData: INodeExecutionData = {
-            json: {
-              ...activity,
-              projectId,
-              eventType: activity.type,
-              timestamp: activity.timestamp,
-              revisionId: activity.revisionId,
-              modifiedEntities: activity.modifiedEntities,
-            },
-          };
-          this.emit([[executionData]]);
-        }
+      // Filter activities by event types if specified
+      const filteredActivities = eventTypes.length > 0
+        ? newActivities.filter((activity: any) => eventTypes.includes(activity.type))
+        : newActivities;
 
-      } catch (error) {
-        this.logger.error(`Error polling Tolgee activities: ${error.message}`);
+      // Update the last timestamp to the most recent activity
+      if (newActivities.length > 0) {
+        const latestTimestamp = Math.max(...newActivities.map((activity: any) => activity.timestamp));
+        webhookData.lastTimestamp = latestTimestamp;
       }
-    };
 
-    // Execute immediately on start
-    await executeTrigger();
+      // Return the filtered activities if any
+      if (filteredActivities.length > 0) {
+        return [this.helpers.returnJsonArray(filteredActivities)];
+      }
 
-    // Set up polling interval
-    const intervalId = setInterval(executeTrigger, pollInterval);
-
-    // Return cleanup function
-    const closeFunction = async () => {
-      clearInterval(intervalId);
-    };
-
-    return {
-      closeFunction: closeFunction,
-    };
+      return null;
+    } catch (error) {
+      throw new NodeApiError(this.getNode(), error as JsonObject);
+    }
   }
 }

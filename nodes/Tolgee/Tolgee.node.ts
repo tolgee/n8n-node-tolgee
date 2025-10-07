@@ -75,7 +75,7 @@ export class Tolgee implements INodeType {
 				const baseURL = credentials?.domain as string;
 
 				try {
-					const response = await this.helpers.request({
+					const response = await this.helpers.httpRequest({
 						method: 'GET',
 						url: `${baseURL}/v2/projects/${projectId}/languages`,
 						headers: {
@@ -84,7 +84,7 @@ export class Tolgee implements INodeType {
 						},
 					});
 
-					const parsedResponse = JSON.parse(response);
+					const parsedResponse = response;
 
 
 					if ("_embedded" in parsedResponse && "languages" in parsedResponse._embedded && Array.isArray(parsedResponse._embedded.languages)) {
@@ -106,7 +106,7 @@ export class Tolgee implements INodeType {
 				const isProjectApiKey = apiKeyIsProjectApiKey(apiKey);
 
 				try {
-					const response = await this.helpers.request({
+					const response = await this.helpers.httpRequest({
 						method: 'GET',
 						url: `${baseURL}/v2/api-keys/current`,
 						headers: {
@@ -115,7 +115,7 @@ export class Tolgee implements INodeType {
 						},
 					});
 
-					const parsedResponse = JSON.parse(response);
+					const parsedResponse = response;
 
 					return [{
 						name: `${parsedResponse.projectName} (${parsedResponse.projectId})`,
@@ -136,7 +136,7 @@ export class Tolgee implements INodeType {
 				const baseURL = credentials?.domain as string;
 
 				try {
-					const response = await this.helpers.request({
+					const response = await this.helpers.httpRequest({
 						method: 'GET',
 						url: `${baseURL}/v2/projects/${projectId}/namespaces`,
 						headers: {
@@ -145,7 +145,7 @@ export class Tolgee implements INodeType {
 						},
 					});
 
-					const parsedResponse = JSON.parse(response);
+					const parsedResponse = response;
 
 					return parsedResponse._embedded.namespaces.map((namespace: any) => ({
 						name: `${namespace.name} (${namespace.id})`,
