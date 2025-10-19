@@ -32,10 +32,10 @@ export const tolgeeOperations: INodeProperties[] = [
 				},
 			},
 			{
-				name: 'Create Translation',
-				value: 'create',
-				description: 'Create a new translation',
-				action: 'Create a translation',
+				name: 'Create Or Update Translation',
+				value: 'createOrUpdateTranslation',
+				description: 'Create or update a translation',
+				action: 'Create or update a translation',
 				routing: {
 					request: {
 						method: 'POST',
@@ -465,7 +465,7 @@ const createOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['translations'],
-				operation: ['create', 'createKey'],
+				operation: ['createOrUpdateTranslation', 'createKey'],
 			},
 		},
 	},
@@ -478,7 +478,7 @@ const createOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['translations'],
-				operation: ['create', 'createKey'],
+				operation: ['createOrUpdateTranslation', 'createKey'],
 			},
 		},
 		options: [
@@ -522,7 +522,7 @@ const createOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['translations'],
-				operation: ['create', 'createKey'],
+				operation: ['createOrUpdateTranslation', 'createKey'],
 			},
 		},
 		options: [
