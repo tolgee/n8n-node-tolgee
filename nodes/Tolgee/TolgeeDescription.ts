@@ -22,6 +22,10 @@ export const tolgeeOperations: INodeProperties[] = [
 					request: {
 						method: 'POST',
 						url: '=/v2/projects/{{$parameter.projectId}}/keys',
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
 						body: {
 							name: '={{$parameter.key}}',
 							translations: '={{$parameter.translations.translation.reduce((acc, item) => { acc[item.language] = item.text; return acc; }, {})}}',
@@ -40,6 +44,10 @@ export const tolgeeOperations: INodeProperties[] = [
 					request: {
 						method: 'POST',
 						url: '=/v2/projects/{{$parameter.projectId}}/translations',
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
 						body: {
 							key: '={{$parameter.key}}',
 							translations: '={{$parameter.translations.translation.reduce((acc, item) => { acc[item.language] = item.text; return acc; }, {})}}',
@@ -58,6 +66,9 @@ export const tolgeeOperations: INodeProperties[] = [
 					request: {
 						method: 'GET',
 						url: '=/v2/projects/{{$parameter.projectId}}/translations',
+						headers: {
+							'Accept': 'application/json',
+						},
 					},
 				},
 			},
@@ -70,6 +81,9 @@ export const tolgeeOperations: INodeProperties[] = [
 					request: {
 						method: 'GET',
 						url: '=/v2/projects/{{$parameter.projectId}}/translations',
+						headers: {
+							'Accept': 'application/json',
+						},
 						qs: {
 							languages: '={{$parameter.languages.join(",")}}',
 							search: '={{$parameter.search}}',

@@ -29,10 +29,6 @@ export class Tolgee implements INodeType {
 		],
 		requestDefaults: {
 			baseURL: '={{$credentials.domain}}',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			},
 		},
 		properties: [
 			{

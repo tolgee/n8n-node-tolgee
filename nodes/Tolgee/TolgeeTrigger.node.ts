@@ -34,11 +34,7 @@ export class TolgeeTrigger implements INodeType {
       },
     ],
     requestDefaults: {
-      baseURL: '={{$credentials.domain}}',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
+      baseURL: '={{$credentials.domain}}'
     },
     properties: [
       {
