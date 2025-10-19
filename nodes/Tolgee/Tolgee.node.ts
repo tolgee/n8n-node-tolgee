@@ -1,4 +1,4 @@
-import { INodeType, INodeTypeDescription, NodeConnectionType, ILoadOptionsFunctions, INodePropertyOptions, NodeApiError, } from 'n8n-workflow';
+import { INodeType, INodeTypeDescription, NodeConnectionType, ILoadOptionsFunctions, INodePropertyOptions, NodeApiError, IExecuteFunctions, INodeExecutionData, } from 'n8n-workflow';
 import { tolgeeFields, tolgeeOperations } from './TolgeeDescription';
 
 function apiKeyIsProjectApiKey(apiKey: string): boolean {
@@ -152,5 +152,89 @@ export class Tolgee implements INodeType {
 				}
 			}
 		}
+	}
+
+	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+		const items = this.getInputData();
+		const returnData: INodeExecutionData[] = [];
+
+		for (let i = 0; i < items.length; i++) {
+			try {
+				const resource = this.getNodeParameter('resource', i) as string;
+				const operation = this.getNodeParameter('operation', i) as string;
+
+				if (resource === 'translations') {
+					if (operation === 'createKey' || operation === 'createOrUpdateTranslation') {
+						const projectId = this.getNodeParameter('projectId', i) as number;
+						const key = this.getNodeParameter('key', i) as string;
+						const translations = this.getNodeParameter('translations.translation', i, []) as Array<{
+							language: string;
+							text: string;
+						}>;
+						const options = this.getNodeParameter('options', i, {}) as any;
+
+						// Build translations object - this will properly evaluate expressions in item.text
+						const translationsObj: Record<string, string> = {};
+						for (const translation of translations) {
+							translationsObj[translation.language] = translation.text;
+						}
+
+						// Build request body
+						const body: any = {
+							name: key,
+							translations: translationsObj,
+						};
+
+						if (operation === 'createOrUpdateTranslation') {
+							body.key = key;
+						}
+
+						if (options.languagesToReturn && Array.isArray(options.languagesToReturn)) {
+							body.languagesToReturn = options.languagesToReturn.map((item: any) => item.value);
+						}
+
+						if (options.namespace) {
+							body.namespace = options.namespace;
+						}
+
+						// Get credentials
+						const credentials = await this.getCredentials('tolgeeApi');
+						const baseURL = credentials?.domain as string;
+
+						// Make the request
+						const url = operation === 'createKey'
+							? `${baseURL}/v2/projects/${projectId}/keys`
+							: `${baseURL}/v2/projects/${projectId}/translations`;
+
+						const response = await this.helpers.httpRequest({
+							method: 'POST',
+							url,
+							headers: {
+								'X-API-Key': credentials?.token,
+								'Accept': 'application/json',
+								'Content-Type': 'application/json',
+							},
+							body,
+						});
+
+						returnData.push({
+							json: response,
+							pairedItem: { item: i },
+						});
+					}
+				}
+			} catch (error) {
+				if (this.continueOnFail()) {
+					returnData.push({
+						json: { error: error.message },
+						pairedItem: { item: i },
+					});
+				} else {
+					throw new NodeApiError(this.getNode(), error);
+				}
+			}
+		}
+
+		return [returnData];
 	}
 }

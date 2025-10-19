@@ -18,44 +18,12 @@ export const tolgeeOperations: INodeProperties[] = [
 				value: 'createKey',
 				description: 'Create a new key',
 				action: 'Create a key',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '=/v2/projects/{{$parameter.projectId}}/keys',
-						headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: {
-							name: '={{$parameter.key}}',
-							translations: '={{$parameter.translations.translation.reduce((acc, item) => { acc[item.language] = item.text; return acc; }, {})}}',
-							languagesToReturn: '={{$parameter.options.languagesToReturn.map(item => item.value)}}',
-							namespace: '={{$parameter.options.namespace}}',
-						},
-					},
-				},
 			},
 			{
 				name: 'Create Or Update Translation',
 				value: 'createOrUpdateTranslation',
 				description: 'Create or update a translation',
 				action: 'Create or update a translation',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '=/v2/projects/{{$parameter.projectId}}/translations',
-						headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: {
-							key: '={{$parameter.key}}',
-							translations: '={{$parameter.translations.translation.reduce((acc, item) => { acc[item.language] = item.text; return acc; }, {})}}',
-							languagesToReturn: '={{$parameter.options.languagesToReturn.map(item => item.value)}}',
-							namespace: '={{$parameter.options.namespace}}',
-						},
-					},
-				},
 			},
 			{
 				name: "Get All Translations",
