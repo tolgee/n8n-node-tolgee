@@ -14,10 +14,10 @@ export const tolgeeOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Create Translation',
-				value: 'create',
-				description: 'Create a new translation',
-				action: 'Create a translation',
+				name: 'Create Key',
+				value: 'createKey',
+				description: 'Create a new key',
+				action: 'Create a key',
 				routing: {
 					request: {
 						method: 'POST',
@@ -25,7 +25,25 @@ export const tolgeeOperations: INodeProperties[] = [
 						body: {
 							name: '={{$parameter.key}}',
 							translations: '={{$parameter.translations.translation.reduce((acc, item) => { acc[item.language] = item.text; return acc; }, {})}}',
-							languagesToReturn: "[{{$parameter.options.languagesToReturn.map(item => '\"' + item.value + '\"').join(\",\")}}]",
+							languagesToReturn: '={{$parameter.options.languagesToReturn.map(item => item.value)}}',
+							namespace: '={{$parameter.options.namespace}}',
+						},
+					},
+				},
+			},
+			{
+				name: 'Create Translation',
+				value: 'create',
+				description: 'Create a new translation',
+				action: 'Create a translation',
+				routing: {
+					request: {
+						method: 'POST',
+						url: '=/v2/projects/{{$parameter.projectId}}/translations',
+						body: {
+							key: '={{$parameter.key}}',
+							translations: '={{$parameter.translations.translation.reduce((acc, item) => { acc[item.language] = item.text; return acc; }, {})}}',
+							languagesToReturn: '={{$parameter.options.languagesToReturn.map(item => item.value)}}',
 							namespace: '={{$parameter.options.namespace}}',
 						},
 					},
@@ -447,7 +465,7 @@ const createOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['translations'],
-				operation: ['create'],
+				operation: ['create', 'createKey'],
 			},
 		},
 	},
@@ -460,7 +478,7 @@ const createOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['translations'],
-				operation: ['create'],
+				operation: ['create', 'createKey'],
 			},
 		},
 		options: [
@@ -504,7 +522,7 @@ const createOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['translations'],
-				operation: ['create'],
+				operation: ['create', 'createKey'],
 			},
 		},
 		options: [
