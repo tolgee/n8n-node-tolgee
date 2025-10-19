@@ -206,15 +206,26 @@ export class Tolgee implements INodeType {
 							? `${baseURL}/v2/projects/${projectId}/keys`
 							: `${baseURL}/v2/projects/${projectId}/translations`;
 
+						// Debug logging
+						this.logger.info('=== TOLGEE DEBUG ===');
+						this.logger.info('URL: ' + url);
+						this.logger.info('Headers: ' + JSON.stringify({
+							'X-API-Key': credentials?.token.toString().substring(0, 8) + '...',
+							'Accept': '*/*',
+							'Content-Type': 'application/json',
+						}));
+						this.logger.info('Body: ' + JSON.stringify(body, null, 2));
+						this.logger.info('==================');
+
 						const response = await this.helpers.httpRequest({
 							method: 'POST',
 							url,
 							headers: {
 								'X-API-Key': credentials?.token,
-								'Accept': 'application/json',
+								'Accept': '*/*',
 								'Content-Type': 'application/json',
 							},
-							body,
+							body: JSON.stringify(body),
 						});
 
 						returnData.push({
